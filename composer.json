@@ -1,0 +1,9 @@
+{
+    "name": "websternstudio/ImageUploader",
+    "type": "cakephp-plugin",
+    "description": "File uploader and validation plugin for CakePHP.",
+    "license": "MIT",
+    "require": {
+        "composer/installers": "~1.0"
+    }
+}
