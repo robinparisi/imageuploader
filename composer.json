@@ -1,5 +1,5 @@
 {
-    "name": "robinparisi/ImageUploader",
+    "name": "robinparisi/imageuploader",
     "type": "cakephp-plugin",
     "description": "File uploader and validation plugin for CakePHP.",
     "license": "MIT",
