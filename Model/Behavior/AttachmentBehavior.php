@@ -48,12 +48,14 @@ class AttachmentBehavior extends ModelBehavior {
         foreach ($this->settings[$model->alias] as $fieldName => $field) {
             if (array_key_exists($fieldName, $model->data[$model->alias])) {
                 // validation
-                if (! $this->checkExtension($model->data[$model->alias][$fieldName]['name'])) {
-                    $model->invalidate($fieldName, __('Format de l\'image incorecte.'));
-                    return false;
-                }
-                else {
-                    $fields[$fieldName] = $field;
+                if ($model->data[$model->alias][$fieldName] !== null) {
+                    if (! $this->checkExtension($model->data[$model->alias][$fieldName]['name'])) {
+                        $model->invalidate($fieldName, __('Format de l\'image incorecte.'));
+                        return false;
+                    }
+                    else {
+                        $fields[$fieldName] = $field;
+                    }
                 }
             }
         }
@@ -92,7 +94,7 @@ class AttachmentBehavior extends ModelBehavior {
                 }
             }
 
-            $model->data[$model->alias][$fieldName] = $model->data[$model->alias][$fieldName]['new_name'];
+            $model->data[$model->alias][$fieldName] = DIRECTORY_SEPARATOR . $path . DIRECTORY_SEPARATOR . $model->data[$model->alias][$fieldName]['new_name'];
         }
 
         return true;
