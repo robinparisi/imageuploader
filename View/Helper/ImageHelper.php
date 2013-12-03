@@ -4,19 +4,38 @@ App::uses('Helper', 'View');
 class ImageHelper extends Helper {
     var $helpers = array('Html', 'Form');
 
-    public function avatar($image, $options = array()) {
+    /**
+     * Ajoute une string à la fin du nom de l'image
+     *
+     * @param  string $image        chemin de l'image
+     * @param  string $append       string à ajouter
+     * @param  string $defaultImage image par defaut
+     * @return string               chemin de l'image
+     */
+    public function imagePath($image, $append = '', $defaultImage = null) {
+        $newPath = null;
 
         if (empty($image)) {
-            $gravatarLink = 'http://www.gravatar.com/avatar/00000000000000000000000000000000?s=100&d=mm';
-            $html = $this->Html->image($gravatarLink, $options);
+            $newPath = $defaultImage;
         }
         else {
-            $html = $this->Html->image('/avatars/'.$image, $options);
+            $path = explode('.', $image);
+            $newPath = $path[0] . $append . '.' . $path[1];
         }
 
-        return $html;
+        return $newPath;
     }
 
+    /**
+     * Génère un formulaire pour uploader une image
+     *
+     * @param  string $name      nom du champ
+     * @param  string $image     url de l'image actuel
+     * @param  array  $uploadURL url pour uploader l'imgae
+     * @param  array  $deleteURL url pour supprimer l'image
+     * @param  array  $options   [description]
+     * @return string            formulaire html
+     */
     public function form($name, $image, $uploadURL, $deleteURL, $options = array()) {
         $imageOptions = array();
         if (array_key_exists('id', $options)) {
@@ -29,7 +48,7 @@ class ImageHelper extends Helper {
         }
 
         $html  = '<div class="iu-container">';
-        $html .= $this->avatar($image, $imageOptions);
+        $html .= $this->Html->image($image, $imageOptions);
         $html .= $this->Form->create($uploadURL['controller'], array('type' => 'file', 'action' => $uploadURL['action']));
         $html .= '<span class="iu-button">';
         $html .= $label;
@@ -41,6 +60,5 @@ class ImageHelper extends Helper {
 
         return $html;
     }
-
 
 }
