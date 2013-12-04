@@ -32,7 +32,7 @@ class ImageHelper extends Helper {
      * @param  string $name      nom du champ
      * @param  string $image     url de l'image actuel
      * @param  array  $uploadURL url pour uploader l'imgae
-     * @param  array  $deleteURL url pour supprimer l'image
+     * @param  array  $deleteURL url pour supprimer l'image si null alors il n'y pas de bouton supprimer
      * @param  array  $options   [description]
      * @return string            formulaire html
      */
@@ -42,6 +42,10 @@ class ImageHelper extends Helper {
             $imageOptions['id'] = $options['id'];
         }
 
+        if (array_key_exists('class', $options)) {
+            $imageOptions['class'] = $options['class'];
+        }
+
         $label = __('Upload');
         if (array_key_exists('label', $options)) {
             $label = $options['label'];
@@ -49,13 +53,15 @@ class ImageHelper extends Helper {
 
         $html  = '<div class="iu-container">';
         $html .= $this->Html->image($image, $imageOptions);
-        $html .= $this->Form->create($uploadURL['controller'], array('type' => 'file', 'action' => $uploadURL['action']));
+        $html .= $this->Form->create($uploadURL['controller'], array('type' => 'file', 'url' => $uploadURL));
         $html .= '<span class="iu-button">';
         $html .= $label;
         $html .= $this->Form->input($name, array('type' => 'file', 'div' => false, 'label' => false));
         $html .= '</span>';
         $html .= $this->Form->end(array('label' => 'Envoyer'));
-        $html .= $this->Html->link('Suppimer', $deleteURL, array('class' => 'iu-delete'));
+        if ($deleteURL !== null) {
+            $html .= $this->Html->link('Suppimer', $deleteURL, array('class' => 'iu-delete'));
+        }
         $html .= '</div>';
 
         return $html;

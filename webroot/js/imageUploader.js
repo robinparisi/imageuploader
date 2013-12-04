@@ -4,8 +4,6 @@
 
         var defaults = {
             name: null,
-            uploadUrl: null,
-            deleteUrl: null,
             defaultImage: null
         };
 
@@ -141,7 +139,7 @@ function Uploader(self, options) {
 
                                 return xhr;
                             },
-                            url: options.uploadUrl,
+                            url: form.attr('action'),
                             type: 'POST',
                             data: formdata,
                             dataType: 'json',

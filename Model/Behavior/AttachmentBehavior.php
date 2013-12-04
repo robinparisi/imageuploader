@@ -43,31 +43,34 @@ class AttachmentBehavior extends ModelBehavior {
      */
     public function beforeSave(Model $model) {
 
-        // s'il y a des champs image
+        // s'il y a des champs images
         $fields = array();
         foreach ($this->settings[$model->alias] as $fieldName => $field) {
             if (array_key_exists($fieldName, $model->data[$model->alias])) {
-                // validation
-                if ($model->data[$model->alias][$fieldName] !== null) {
-                    if (! $this->checkExtension($model->data[$model->alias][$fieldName]['name'])) {
-                        $model->invalidate($fieldName, __('Format de l\'image incorecte.'));
-                        return false;
-                    }
-                    else {
+                // suppresion des images
+                if ($model->data[$model->alias][$fieldName] === null) {
+                    $fields[$fieldName] = $field;
+                }
+                // aucune image, aucune modification
+                elseif ($model->data[$model->alias][$fieldName]['error'] != 0) {
+                    unset($model->data[$model->alias][$fieldName]);
+                }
+                else {
+                    // validation
+                    // if (!$this->checkExtension($model->data[$model->alias][$fieldName]['name'])) {
+                    //     $model->invalidate($fieldName, __('Format de l\'image incorecte.'));
+                    //     return false;
+                    // }
+                    // else {
                         $fields[$fieldName] = $field;
-                    }
+                    // }
                 }
             }
         }
 
-        // si il n'y pas d'image à savegarder on accepte le save
-        if (empty($fields)) {
-            return true;
-        }
-        else {
-            if (empty($model->id)) {
-                return false;
-            }
+
+        $data = null;
+        if (! empty($model->id)) {
             $data = $model->find('first', array(
                 'conditions' => array($model->alias . '.' . $model->primaryKey => $model->id),
                 'recursive' => -1
@@ -77,24 +80,30 @@ class AttachmentBehavior extends ModelBehavior {
         // pour chaque champ du model
         foreach ($fields as $fieldName => $field) {
             $path = $field['path'];
+            $filename = pathinfo($model->data[$model->alias][$fieldName]['name'], PATHINFO_FILENAME);
+            $extension = '.jpg';
+
             // pour chaque transformation
             foreach ($field['transforms'] as $transform) {
-                // on supprime le fichier
-                $filename = preg_replace('/(\.[^.]+)$/', sprintf('%s$1', $transform['append']), $data[$model->alias][$fieldName]);
-                $filepath = $path . DIRECTORY_SEPARATOR . $filename;
-                if (is_file($filepath)) {
-                    unlink($filepath);
+                // on supprime les anciens fichiers
+                if ($data) {
+                    // 1 pour enlever le slash -4 = taille de .jpg
+                    $file = substr($data[$model->alias][$fieldName], 1, -4) . $transform['append'] . $extension;
+                    if (is_file($file)) {
+                        unlink($file);
+                    }
                 }
 
                 // on redimensionne la nouvelle image
                 if (is_array($model->data[$model->alias][$fieldName])) {
-                    $newFilename = preg_replace('/(\.[^.]+)$/', sprintf('%s$1', $transform['append']), $model->data[$model->alias][$fieldName]['new_name']);
-                    $newFilepath = $path . DIRECTORY_SEPARATOR . $newFilename;
-                    $this->resize($model->data[$model->alias][$fieldName]['tmp_name'], $newFilepath, array($transform['width'], $transform['height']));
+                    $filepath = $path . '/' . $filename . $transform['append'] . $extension;
+                    $this->resize($model->data[$model->alias][$fieldName]['tmp_name'], $filepath, $transform['width'], $transform['height']);
                 }
             }
 
-            $model->data[$model->alias][$fieldName] = DIRECTORY_SEPARATOR . $path . DIRECTORY_SEPARATOR . $model->data[$model->alias][$fieldName]['new_name'];
+            if (! empty($model->data[$model->alias][$fieldName])) {
+                $model->data[$model->alias][$fieldName] =  '/' . $path . '/' . $filename . $extension;
+            }
         }
 
         return true;
@@ -123,9 +132,9 @@ class AttachmentBehavior extends ModelBehavior {
             foreach ($field['transforms'] as $transform) {
                 // on supprime le fichier
                 $filename = preg_replace('/(\.[^.]+)$/', sprintf('%s$1', $transform['append']), $data[$model->alias][$fieldName]);
-                $filepath = $field['path'] . DIRECTORY_SEPARATOR . $filename;
-                if (is_file($filepath)) {
-                    unlink($filepath);
+                $filename = substr($filename, 1);
+                if (is_file($filename)) {
+                    unlink($filename);
                 }
             }
         }
@@ -164,9 +173,7 @@ class AttachmentBehavior extends ModelBehavior {
      * redimension une image
      * @return bool true s'il n'y a pas d'erreur
      */
-    public function resize($sourcePath, $newPath, $options) {
-        list($width, $height) = $options;
-
+    public function resize($sourcePath, $newPath, $width, $height) {
         list($sourceWidth, $sourceHeight, $sourceType) = getimagesize($sourcePath);
 
 
