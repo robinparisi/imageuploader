@@ -102,13 +102,13 @@ function Uploader(self, options) {
     function initUpload() {
         // test la compatibilité js
         if (window.FileReader && window.FormData) {
-            var formdata = new FormData();
 
             // supprimer le bouton submit
             submitButton.css('display', 'none');
 
             // à la selection du fichier
             fileInput.change(function() {
+                var formdata = new FormData();
 
                 if (this.files.length > 0) {
                     var file = this.files[0];

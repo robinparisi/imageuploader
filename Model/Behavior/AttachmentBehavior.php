@@ -57,13 +57,12 @@ class AttachmentBehavior extends ModelBehavior {
                 }
                 else {
                     // validation
-                    // if (!$this->checkExtension($model->data[$model->alias][$fieldName]['name'])) {
-                    //     $model->invalidate($fieldName, __('Format de l\'image incorecte.'));
-                    //     return false;
-                    // }
-                    // else {
+                    if (! $this->checkErrors($model, $fieldName)) {
+                        return false;
+                    }
+                    else {
                         $fields[$fieldName] = $field;
-                    // }
+                    }
                 }
             }
         }
@@ -142,31 +141,59 @@ class AttachmentBehavior extends ModelBehavior {
         return true;
     }
 
-    public function checkExtension($name){
+    /**
+     * Check le type d'image. Les fichiers acceptés sont gif, jpg, png
+     *
+     * @param  string   $path  chemin du fichier à tester
+     * @return bool
+     */
+    public function checkSourceType($path) {
+        $ok = true;
+        list($sourceWidth, $sourceHeight, $sourceType) = getimagesize($path);
 
-        $extensionsValides = array('jpg' , 'jpeg', 'png', 'gif');
-        $extension = strtolower(substr(strrchr($name, '.') , 1));
+        switch ($sourceType) {
+            case IMAGETYPE_GIF:
+                break;
+            case IMAGETYPE_JPEG:
+                break;
+            case IMAGETYPE_PNG:
+                break;
+            default:
+                $ok = false;
+                break;
+        }
 
-        return in_array($extension, $extensionsValides);
+        return $ok;
     }
 
-    public function checkNoErrors(){
+    /**
+     * Validation d'un champ dans un model
+     *
+     * @param  Model  $model    Model
+     * @param  string $filename Nom du champs à valider
+     * @return bool
+     */
+    public function checkErrors($model, $fieldName) {
+        $image = $model->data[$model->alias][$fieldName];
 
-        if(!$this->checkExtension()){
+        if(!$this->checkSourceType($image['tmp_name'])) {
+            $model->invalidate($fieldName, __('L\'image doit être de type jpg, png ou gif'));
             return false;
         }
 
-        if($this->image['error'] == UPLOAD_ERR_OK) {
+        if($image['error'] == UPLOAD_ERR_OK) {
             return true;
         }
-        elseif ($this->image['error'] == UPLOAD_ERR_INI_SIZE || $this->image['error'] == UPLOAD_ERR_FORM_SIZE) {
-            $this->error = __('Votre image est trop lourde.');
+        elseif ($image['error'] == UPLOAD_ERR_INI_SIZE || $image['error'] == UPLOAD_ERR_FORM_SIZE) {
+            $model->invalidate($fieldName, __('Votre image est trop lourde.'));
             return false;
         }
         else {
-            $this->error = __('Une erreur est survenue lors tu téléchargement de l\'image');
+            $model->invalidate($fieldName, __('Une erreur est survenue lors tu téléchargement de l\'image'));
             return false;
         }
+
+        return false;
     }
 
     /**
