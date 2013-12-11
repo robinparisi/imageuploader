@@ -17,6 +17,7 @@ class AttachmentBehavior extends ModelBehavior {
         $defaut = array(
             'avatar' => array(
                 'path' => '/avatars/',
+                'validation' => false,
                 'transforms' => array(
                     'normal' => array(
                         'append' => '',
@@ -53,8 +54,11 @@ class AttachmentBehavior extends ModelBehavior {
                 }
                 else {
                     // validation
-                    if (! $this->checkErrors($model, $fieldName)) {
+                    if (! $this->checkErrors($model, $fieldName, $field)) {
                         return false;
+                    }
+                    elseif ($model->data[$model->alias][$fieldName]['error'] != UPLOAD_ERR_OK) {
+                        unset($model->data[$model->alias][$fieldName]);
                     }
                     else {
                         $fields[$fieldName] = $field;
@@ -169,30 +173,38 @@ class AttachmentBehavior extends ModelBehavior {
      * @param  string $filename Nom du champs à valider
      * @return bool
      */
-    public function checkErrors($model, $fieldName) {
+    public function checkErrors($model, $fieldName, $field) {
         $image = $model->data[$model->alias][$fieldName];
-
-
+        $ok = false;
 
         if($image['error'] == UPLOAD_ERR_OK) {
-
-            if(!$this->checkSourceType($image['tmp_name'])) {
+            if(! $this->checkSourceType($image['tmp_name'])) {
                 $model->invalidate($fieldName, __('L\'image doit être de type jpg, png ou gif'));
-                return false;
+                $ok = false;
             }
-            
-            return true;
+            else {
+                $ok = true;
+            }
         }
         elseif ($image['error'] == UPLOAD_ERR_INI_SIZE || $image['error'] == UPLOAD_ERR_FORM_SIZE) {
             $model->invalidate($fieldName, __('Votre image est trop lourde.'));
-            return false;
+            $ok = false;
+        }
+        elseif ($image['error'] == UPLOAD_ERR_NO_FILE) {
+            if (isset($field['validation']) && $field['validation'] == 'notEmpty') {
+                $model->invalidate($fieldName, __('L\'image est obligatoire.'));
+                $ok = false;
+            }
+            else {
+                $ok = true;
+            }
         }
         else {
-            $model->invalidate($fieldName, __('Une erreur est survenue lors tu téléchargement de l\'image'));
-            return false;
+            $model->invalidate($fieldName, __('Une erreur est survenue lors du téléchargement de l\'image.'));
+            $ok = false;
         }
 
-        return false;
+        return $ok;
     }
 
     /**
