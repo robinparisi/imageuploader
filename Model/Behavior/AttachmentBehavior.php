@@ -22,15 +22,15 @@ class AttachmentBehavior extends ModelBehavior {
                         'append' => '',
                         'width' => 215,
                         'height' => 215,
-                    ),
+                        ),
                     'small' => array(
                         'append' => '-small',
                         'width' => 100,
                         'height' => 100,
+                        )
                     )
                 )
-            )
-        );
+            );
 
         $this->settings[$model->alias] = $settings;
     }
@@ -51,10 +51,6 @@ class AttachmentBehavior extends ModelBehavior {
                 if ($model->data[$model->alias][$fieldName] === null) {
                     $fields[$fieldName] = $field;
                 }
-                // aucune image, aucune modification
-                elseif ($model->data[$model->alias][$fieldName]['error'] != 0) {
-                    unset($model->data[$model->alias][$fieldName]);
-                }
                 else {
                     // validation
                     if (! $this->checkErrors($model, $fieldName)) {
@@ -73,7 +69,7 @@ class AttachmentBehavior extends ModelBehavior {
             $data = $model->find('first', array(
                 'conditions' => array($model->alias . '.' . $model->primaryKey => $model->id),
                 'recursive' => -1
-            ));
+                ));
         }
 
         // pour chaque champ du model
@@ -123,7 +119,7 @@ class AttachmentBehavior extends ModelBehavior {
         $data = $model->find('first', array(
             'conditions' => array($model->alias . '.' . $model->primaryKey => $model->id),
             'recursive' => -1
-        ));
+            ));
 
         // pour chaque champ du model
         foreach ($this->settings[$model->alias] as $fieldName => $field) {
@@ -153,14 +149,14 @@ class AttachmentBehavior extends ModelBehavior {
 
         switch ($sourceType) {
             case IMAGETYPE_GIF:
-                break;
+            break;
             case IMAGETYPE_JPEG:
-                break;
+            break;
             case IMAGETYPE_PNG:
-                break;
+            break;
             default:
-                $ok = false;
-                break;
+            $ok = false;
+            break;
         }
 
         return $ok;
@@ -176,12 +172,15 @@ class AttachmentBehavior extends ModelBehavior {
     public function checkErrors($model, $fieldName) {
         $image = $model->data[$model->alias][$fieldName];
 
-        if(!$this->checkSourceType($image['tmp_name'])) {
-            $model->invalidate($fieldName, __('L\'image doit être de type jpg, png ou gif'));
-            return false;
-        }
+
 
         if($image['error'] == UPLOAD_ERR_OK) {
+
+            if(!$this->checkSourceType($image['tmp_name'])) {
+                $model->invalidate($fieldName, __('L\'image doit être de type jpg, png ou gif'));
+                return false;
+            }
+            
             return true;
         }
         elseif ($image['error'] == UPLOAD_ERR_INI_SIZE || $image['error'] == UPLOAD_ERR_FORM_SIZE) {
@@ -206,14 +205,14 @@ class AttachmentBehavior extends ModelBehavior {
 
         switch ($sourceType) {
             case IMAGETYPE_GIF:
-                $sourceGdim = imagecreatefromgif($sourcePath);
-                break;
+            $sourceGdim = imagecreatefromgif($sourcePath);
+            break;
             case IMAGETYPE_JPEG:
-                $sourceGdim = imagecreatefromjpeg($sourcePath);
-                break;
+            $sourceGdim = imagecreatefromjpeg($sourcePath);
+            break;
             case IMAGETYPE_PNG:
-                $sourceGdim = imagecreatefrompng($sourcePath);
-                break;
+            $sourceGdim = imagecreatefrompng($sourcePath);
+            break;
         }
 
 
@@ -239,7 +238,7 @@ class AttachmentBehavior extends ModelBehavior {
             0, 0,
             $tmpWidth, $tmpHeight,
             $sourceWidth, $sourceHeight
-        );
+            );
 
 
         // croping
@@ -254,7 +253,7 @@ class AttachmentBehavior extends ModelBehavior {
             0, 0,
             $x, $y,
             $width, $height
-        );
+            );
 
         imagejpeg($newGdim, $newPath, 100);
 
