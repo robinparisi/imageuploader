@@ -177,7 +177,16 @@ class AttachmentBehavior extends ModelBehavior {
         $image = $model->data[$model->alias][$fieldName];
         $ok = false;
 
-        if($image['error'] == UPLOAD_ERR_OK) {
+        if (! isset($image['error']) || $image['error'] == UPLOAD_ERR_NO_FILE) {
+            if (isset($field['validation']) && $field['validation'] == 'notEmpty') {
+                $model->invalidate($fieldName, __('L\'image est obligatoire.'));
+                $ok = false;
+            }
+            else {
+                $ok = true;
+            }
+        }
+        elseif ($image['error'] == UPLOAD_ERR_OK) {
             if(! $this->checkSourceType($image['tmp_name'])) {
                 $model->invalidate($fieldName, __('L\'image doit être de type jpg, png ou gif'));
                 $ok = false;
@@ -189,15 +198,6 @@ class AttachmentBehavior extends ModelBehavior {
         elseif ($image['error'] == UPLOAD_ERR_INI_SIZE || $image['error'] == UPLOAD_ERR_FORM_SIZE) {
             $model->invalidate($fieldName, __('Votre image est trop lourde.'));
             $ok = false;
-        }
-        elseif ($image['error'] == UPLOAD_ERR_NO_FILE) {
-            if (isset($field['validation']) && $field['validation'] == 'notEmpty') {
-                $model->invalidate($fieldName, __('L\'image est obligatoire.'));
-                $ok = false;
-            }
-            else {
-                $ok = true;
-            }
         }
         else {
             $model->invalidate($fieldName, __('Une erreur est survenue lors du téléchargement de l\'image.'));

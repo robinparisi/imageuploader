@@ -57,27 +57,21 @@ function Uploader(self, options) {
 
         submitButton = form.find('input[type=submit]');
 
-        // deleteButton = $('<button>', {
-        //     type: 'button',
-        //     text: 'supprimer'
-        // });
+        deleteButton = form.next('a');
 
-        // deleteButton.click(function(ev) {
-        //     ev.preventDefault();
+        deleteButton.click(function(ev) {
+            ev.preventDefault();
 
-        //     if (confirm('Êtes vous sûre de vouloir supprimer votre avatar ?')) {
-        //         $.ajax({
-        //             url: options.deleteUrl,
-        //             dataType: 'json',
-        //             success: function(data) {
-        //                 self.attr('src', options.defaultImage);
-        //             }
-        //         });
-        //     }
-        // });
-
-        // self.after(deleteButton);
-        // self.after(form);
+            if (confirm('Êtes vous sûre de vouloir supprimer cette image ?')) {
+                $.ajax({
+                    url: $(this).attr('href'),
+                    dataType: 'json',
+                    success: function(data) {
+                        self.attr('src', options.defaultImage);
+                    }
+                });
+            }
+        });
 
         initProgressBar();
         initUpload();
