@@ -59,19 +59,21 @@ function Uploader(self, options) {
 
         deleteButton = form.next('a');
 
-        deleteButton.click(function(ev) {
-            ev.preventDefault();
+        if (deleteButton.attr('href')) {
+            deleteButton.click(function(ev) {
+                ev.preventDefault();
 
-            if (confirm('Êtes vous sûre de vouloir supprimer cette image ?')) {
-                $.ajax({
-                    url: $(this).attr('href'),
-                    dataType: 'json',
-                    success: function(data) {
-                        self.attr('src', options.defaultImage);
-                    }
-                });
-            }
-        });
+                if (confirm('Êtes vous sûre de vouloir supprimer cette image ?')) {
+                    $.ajax({
+                        url: $(this).attr('href'),
+                        dataType: 'json',
+                        success: function(data) {
+                            self.attr('src', options.defaultImage);
+                        }
+                    });
+                }
+            });
+        }
 
         initProgressBar();
         initUpload();
