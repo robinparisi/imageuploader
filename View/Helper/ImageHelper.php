@@ -46,13 +46,19 @@ class ImageHelper extends Helper {
             $imageOptions['class'] = $options['class'];
         }
 
-        $label = __('Upload');
+        $label = __('Choisir');
         if (array_key_exists('label', $options)) {
             $label = $options['label'];
         }
 
         $html  = '<div class="iu-container">';
-        $html .= $this->Html->image($image, $imageOptions);
+
+        if(is_null($image)) {
+            $html .= '<img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="js-image-upload">';
+        } else {
+            $html .= $this->Html->image($image, $imageOptions);
+        }
+
         $html .= $this->Form->create($uploadURL['controller'], array('type' => 'file', 'url' => $uploadURL));
         $html .= '<span class="iu-button">';
         $html .= $label;
@@ -60,7 +66,7 @@ class ImageHelper extends Helper {
         $html .= '</span>';
         $html .= $this->Form->end(array('label' => 'Envoyer'));
         if ($deleteURL !== null) {
-            $html .= $this->Html->link('Suppimer', $deleteURL, array('class' => 'iu-delete'));
+            $html .= $this->Html->link(__('Supprimer'), $deleteURL, array('class' => 'iu-delete'));
         }
         $html .= '</div>';
 
